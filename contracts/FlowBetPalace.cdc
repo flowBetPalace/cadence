@@ -14,6 +14,18 @@ access(all) contract FlowBetPalace {
     // emit an event when an event has been created 
     pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: String,endDate: String)
 
+    //BetPublicInterface
+    //public interface of Bet resources
+    pub resource interface BetPublicInterface {
+        
+    }
+
+    //BetPublicInterface
+    //public interface of Bet resources
+    pub resource interface BetAdminInterface {
+        
+    }
+
     //ChildBetPublicInterface
     //public interface of ChildBet resources
     pub resource interface ChildBetPublicInterface {
@@ -30,7 +42,7 @@ access(all) contract FlowBetPalace {
     // A Bet represents a Bet created for events such as matches or fights.
     // It stores various data related to the event, excluding information about
     // available child bets and their associated money data.
-    pub resource Bet {
+    pub resource Bet : BetPublicInterface, BetAdminInterface{
         // Bet Data
         pub let name: String
         pub let description: String
@@ -38,7 +50,8 @@ access(all) contract FlowBetPalace {
         pub let category: String
         pub let startDate: String
         pub let endDate: String
-
+        pub let storagePath: StoragePath
+        pub let publicPath: PublicPath
         //childBets
         //store all the capabilities of child bets for future fast query of them
         //BAD AS ITS LOW SCALABLE IF U HAVE TO ACCES THE DATA LOT OF TIMES
@@ -75,6 +88,12 @@ access(all) contract FlowBetPalace {
             self.endDate = endDate
             self.childBets = []
             self.childBetsPath = []
+
+            // publicPath going to be unique , name is average
+            // but endDate determined with milliseconds is a value with uniqueness
+            var genericPath: String = "/bet/"
+            self.storagePath = StoragePath(identifier: "/storage".concat(genericPath).concat(name).concat(endDate))!
+            self.publicPath = PublicPath(identifier: "/public".concat(genericPath).concat(name).concat(endDate))!
         }
 
     }
@@ -96,14 +115,12 @@ access(all) contract FlowBetPalace {
 
     }
 
-    //mapping for Bet Categories
-    //mapping of open bets
-
-    // storagePath
+    
+    // storagePath for FlowBetPalace account resource
     // storage path where the Profile resource should be located
     pub let storagePath: StoragePath
 
-    // publicPath
+    // publicPath for FlowBetPalace account resource
     // the public link for the storagePath
     pub let publicPath: PublicPath
   
