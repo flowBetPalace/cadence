@@ -14,16 +14,28 @@ access(all) contract FlowBetPalace {
     // emit an event when an event has been created 
     pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: String,endDate: String)
 
+    //createdBetsPub createdBetsPriv
+    //only for development purposes
+    pub var createdBetsPub: [PublicPath]
+    pub var createdBetsPriv: [PrivatePath]
+
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
-        
+        pub fun getBetData():[String]
     }
 
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetAdminInterface {
-        
+
+        //addChildBetCapability
+        //store capabilities that have access to each childPath
+        pub fun addChildBetCapability(capability: Capability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>,path:PublicPath)
+
+        //createChildBet
+        //create a new child bet resource
+        pub fun createChildBet(name:String,options: [String]):@ChildBet
     }
 
     //ChildBetPublicInterface
@@ -57,6 +69,7 @@ access(all) contract FlowBetPalace {
         //BAD AS ITS LOW SCALABLE IF U HAVE TO ACCES THE DATA LOT OF TIMES
         //access(contract) var childBets :@{UInt64 : FlowBetPalace.ChildBet}
         //GOOD WITH VERY HIGH SCALABILITY IF HAVE TO ACCES THE DATA LOT OF TITMES
+        //we store the capabilities for acces the data inside faster than storing resources or path
         access(contract) var childBets: [Capability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>]
 
         //childBetsPath
@@ -76,6 +89,10 @@ access(all) contract FlowBetPalace {
         //create a new child bet resource
         pub fun createChildBet(name:String,options: [String]):@ChildBet{
             return <- create ChildBet(name:name,options: options)
+        }
+
+        pub fun getBetData():[String]{
+            return [self.name,self.description,self.imageLink,self.category,self.startDate,self.endDate]
         }
 
         //resource initializer
@@ -115,6 +132,17 @@ access(all) contract FlowBetPalace {
 
     }
 
+    access(self) fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
+        return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+    }
+
+    // addBet
+    // for development 
+    access(self) fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
+        self.createdBetsPub[0] = _publicPath
+        self.createdBetsPriv[0] = _privatePath
+    }
+
     
     // storagePath for FlowBetPalace account resource
     // storage path where the Profile resource should be located
@@ -128,6 +156,10 @@ access(all) contract FlowBetPalace {
     init(){
         self.storagePath = /storage/FlowBetPalace
         self.publicPath = /public/FlowBetPalace
+
+        //development purpose variables
+        self.createdBetsPub = []
+        self.createdBetsPriv = []
     }
 
 }
