@@ -129,16 +129,20 @@ access(all) contract FlowBetPalace {
 
     // Admin
     pub resource Admin {
-
+    
+        pub fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
+            FlowBetPalace.addBet(_publicPath:_publicPath,_privatePath:_privatePath)
+        }
+        
     }
 
-    access(self) fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
+    pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
         return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
     }
 
     // addBet
     // for development 
-    access(self) fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
+    access(account) fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
         self.createdBetsPub[0] = _publicPath
         self.createdBetsPriv[0] = _privatePath
     }
@@ -151,11 +155,21 @@ access(all) contract FlowBetPalace {
     // publicPath for FlowBetPalace account resource
     // the public link for the storagePath
     pub let publicPath: PublicPath
-  
+
+    // adminStoragePath for FlowBetPalace admin resource
+    // adminStoragePath where the admin resource should be located
+    pub let adminStoragePath : StoragePath
+
+    // ddminPublicPath for FlowBetPalace account resource
+    // the public link for the storagePath
+    pub let adminPublicPath : PublicPath
+    
 
     init(){
         self.storagePath = /storage/FlowBetPalace
         self.publicPath = /public/FlowBetPalace
+        self.adminStoragePath = /storage/FlowBetPalaceAdmin
+        self.adminPublicPath = /public/FlowBetPalaceAdmin
 
         //development purpose variables
         self.createdBetsPub = []
