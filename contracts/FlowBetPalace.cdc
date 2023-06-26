@@ -129,7 +129,7 @@ access(all) contract FlowBetPalace {
 
     // Admin
     pub resource Admin {
-    
+
         pub fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
             FlowBetPalace.addBet(_publicPath:_publicPath,_privatePath:_privatePath)
         }
@@ -166,11 +166,12 @@ access(all) contract FlowBetPalace {
     
 
     init(){
-        self.storagePath = /storage/FlowBetPalace
-        self.publicPath = /public/FlowBetPalace
-        self.adminStoragePath = /storage/FlowBetPalaceAdmin
-        self.adminPublicPath = /public/FlowBetPalaceAdmin
-
+        self.storagePath = /storage/flowBetPalace
+        self.publicPath = /public/flowBetPalace
+        self.adminStoragePath = /storage/flowBetPalaceAdmin
+        self.adminPublicPath = /public/flowBetPalaceAdmin
+        //store admin resource to creator vault when this contract is deployed 
+        self.account.save(<-create Admin(), to: /storage/flowBetPalaceAdmin)
         //development purpose variables
         self.createdBetsPub = []
         self.createdBetsPriv = []
