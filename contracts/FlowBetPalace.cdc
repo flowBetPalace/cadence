@@ -16,8 +16,8 @@ access(all) contract FlowBetPalace {
 
     //createdBetsPub createdBetsPriv
     //only for development purposes
-    pub var createdBetsPub: [PublicPath]
-    pub var createdBetsStorage: [StoragePath]
+    access(contract) var createdBetsPub: [PublicPath]
+    access(contract) var createdBetsStorage: [StoragePath]
 
     //BetPublicInterface
     //public interface of Bet resources
@@ -132,25 +132,23 @@ access(all) contract FlowBetPalace {
 
     // Admin
     pub resource Admin: AdminInterface {
-
+        // createBet 
+        // newBet is created and event is emitted 
+        // application will get bets from this emitted events
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
+            emit createdBet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+            return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+        }
+        // addBet
+        // this is for development purposes, in production events are get from events
         pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
-            FlowBetPalace.addBet(_publicPath:_publicPath,_storagePath:_storagePath)
+            FlowBetPalace.createdBetsPub.append(_publicPath)
+            FlowBetPalace.createdBetsStorage.append(_storagePath)
         }
         
     }
 
-    pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
-        
-        return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
-        
-    }
-
-    // addBet
-    // for development 
-    access(account) fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
-        self.createdBetsPub.append(_publicPath)
-        self.createdBetsStorage.append(_storagePath)
-    }
+    
 
     
     // storagePath for FlowBetPalace account resource
