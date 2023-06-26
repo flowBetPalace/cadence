@@ -12,17 +12,21 @@ access(all) contract FlowBetPalace {
 
     // createdBet
     // emit an event when an event has been created 
-    pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: String,endDate: String)
+    pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,uuid: String)
 
-    //createdBetsPub createdBetsPriv
-    //only for development purposes
-    access(contract) var createdBetsPub: [PublicPath]
-    access(contract) var createdBetsStorage: [StoragePath]
+    // betChilds
+    // every event childs data will be published by this event every time gets updated and queried by the app
+    // betChildUuid is the unique identifier of the child, 
+    // while data contains 2 strings array,[[bet options],[quote/odds of each bet]], the bet option index matches with the quote index
+    pub event betChildData(data:[[String]],betChildUuid:String)
+
+    //betChilds
+    //just emit an event every time a bet child is created
+    pub event createdBetChilds(betUuid: String)
 
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
-        pub fun getBetData():[String]
     }
 
     //BetPublicInterface
@@ -30,8 +34,8 @@ access(all) contract FlowBetPalace {
     pub resource interface BetAdminInterface {
 
         //addChildBetCapability
-        //store capabilities that have access to each childPath
-        pub fun addChildBetCapability(capability: Capability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>,path:PublicPath)
+        //store child bets path
+        pub fun addChildBetPath(path:PublicPath)
 
         //createChildBet
         //create a new child bet resource
@@ -52,14 +56,12 @@ access(all) contract FlowBetPalace {
 
     pub resource interface AdminInterface {
         // createBet 
-        // newBet is created and event is emitted 
+        // newBet is created at the resource constructor and event is emitted 
         // application will get bets from this emitted events
         // create bet is restricted for only admins, since an event is emitted at every bet creation, 
         // we only want an event is emitted for the bets created by the organization
-        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet
-        // addBet
-        // this is for development purposes, in production you get bets from events
-        pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath)
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64): @Bet
+
     }
 
     // Bet
@@ -72,29 +74,19 @@ access(all) contract FlowBetPalace {
         pub let description: String
         pub let imageLink: String
         pub let category: String
-        pub let startDate: String
-        pub let endDate: String
+        pub let startDate: UFix64
+        pub let endDate: UFix64
         pub let storagePath: StoragePath
         pub let publicPath: PublicPath
-        //childBets
-        //store all the capabilities of child bets for future fast query of them
-        //BAD AS ITS LOW SCALABLE IF U HAVE TO ACCES THE DATA LOT OF TIMES
-        //access(contract) var childBets :@{UInt64 : FlowBetPalace.ChildBet}
-        //GOOD WITH VERY HIGH SCALABILITY IF HAVE TO ACCES THE DATA LOT OF TITMES
-        //we store the capabilities for acces the data inside faster than storing resources or path
-        access(contract) var childBets: [Capability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>]
-
+        
         //childBetsPath
-        //this is only for development purposes
+        //this is only for development purposes and for have a backup of the PublicPaths apart of the events
         access(contract) var childBetsPath: [PublicPath]
 
         //addChildBetCapability
         //store capabilities that have access to each childPath
-        pub fun addChildBetCapability(capability: Capability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>,path:PublicPath){
-            self.childBets.append(capability)
+        pub fun addChildBetPath(path:PublicPath){
             self.childBetsPath.append(path)
-            //future reminder how to acces a capability
-            //let ref = capability.borrow()
         }
 
         //createChildBet
@@ -103,33 +95,37 @@ access(all) contract FlowBetPalace {
             return <- create ChildBet(name:name,options: options)
         }
 
-        pub fun getBetData():[String]{
-            return [self.name,self.description,self.imageLink,self.category,self.startDate,self.endDate]
-        }
 
         //resource initializer
-        init(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String){
+        init(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64){
             self.name = name
             self.description = description
             self.imageLink = imageLink
             self.category = category
             self.startDate = startDate
             self.endDate = endDate
-            self.childBets = []
             self.childBetsPath = []
 
             // publicPath going to be unique , name is average
             // but endDate determined with milliseconds is a value with uniqueness
-            self.storagePath = StoragePath(identifier:"bet".concat(name).concat(endDate))!
-            self.publicPath = PublicPath(identifier: "bet".concat(name).concat(endDate))!       
+            self.storagePath = StoragePath(identifier:"bet".concat(self.uuid.toString()))!
+            self.publicPath = PublicPath(identifier: "bet".concat(self.uuid.toString()))!     
+            emit createdBet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,uuid:self.uuid.toString())
         }
 
     }
 
     // ChildBet
     pub resource ChildBet {
+        pub let name: String
+        pub let options: [String]
+        pub let winnerOptionsIndex: [UInt64]
+
 
         init(name: String, options: [String]){
+            self.name = name
+            self.options = options
+            self.winnerOptionsIndex = []
         }
     }
 
@@ -145,16 +141,8 @@ access(all) contract FlowBetPalace {
         // application will get bets from this emitted events
         // create bet is restricted for only admins, since an event is emitted at every bet creation, 
         // we only want an event is emitted for the bets created by the organization
-        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
-            emit createdBet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64): @Bet{
             return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
-        }
-
-        // addBet
-        // this is for development purposes, in production you get bets from events
-        pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
-            FlowBetPalace.createdBetsPub.append(_publicPath)
-            FlowBetPalace.createdBetsStorage.append(_storagePath)
         }
         
     }
@@ -191,9 +179,6 @@ access(all) contract FlowBetPalace {
         // create public link to the admin resource
         self.account.link<&AnyResource{FlowBetPalace.AdminInterface}>(/public/flowBetPalaceAdmin, target: /storage/flowBetPalaceAdmin)
         
-        // development purpose variables
-        self.createdBetsPub = []
-        self.createdBetsStorage = []
     }
 
 }
