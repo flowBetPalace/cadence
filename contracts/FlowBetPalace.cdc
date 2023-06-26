@@ -18,11 +18,11 @@ access(all) contract FlowBetPalace {
     // every event childs data will be published by this event every time gets updated and queried by the app
     // betChildUuid is the unique identifier of the child, 
     // while data contains 2 strings array,[[bet options],[quote/odds of each bet]], the bet option index matches with the quote index
-    pub event betChildData(data:[[String]],betChildUuid:String)
+    pub event betChildData(data:[[String]],betChildUuid:String,name: String)
 
     //betChilds
     //just emit an event every time a bet child is created
-    pub event createdBetChilds(betUuid: String)
+    pub event createdBetChilds(betUuid: String,betchildUuid: String)
 
     //BetPublicInterface
     //public interface of Bet resources
@@ -116,16 +116,62 @@ access(all) contract FlowBetPalace {
     }
 
     // ChildBet
-    pub resource ChildBet {
+    pub resource ChildBet: ChildBetPublicInterface,  ChildBetAdminInterface{
         pub let name: String
+        // options
+        // possible options where the user can bet
         pub let options: [String]
+
+        // winnerOptionsIndex
+        // options that have winned
         pub let winnerOptionsIndex: [UInt64]
+
+        // optionOdds 
+        // decimal odds of of every option
+        pub var optionOdds: {UInt64:UFix64}
+
+        // optionsValue
+        // when people bet in favor of an option
+        // the amount betted in that option is after used to calculate the odds 
+        pub var optionsValueAmount: {UInt64:UFix64}
+
+        // totalAmount
+        // the total amount that this bet has
+        pub var totalAmount: UFix64
+
+        //paths to interact with this bet
+        pub let storagePath: StoragePath
+        pub let publicPath: PublicPath
+        
+        //dates
+        pub let startDate: UFix64
+        pub let endDate: UFix64
+        pub let stopAcceptingBetsDate: UFix64
+        access(self) fun emitbetChildData(){
+        }
+
+        pub fun newBet(){
+        }
+
+        pub fun chechPrize(){
+        }
+
+        access(contract) fun setWinnerOptions(){
+        }
 
 
         init(name: String, options: [String]){
             self.name = name
             self.options = options
             self.winnerOptionsIndex = []
+            self.optionOdds = {}
+            self.optionsValueAmount= {}
+            self.totalAmount = 0.0
+            self.startDate = 0.0
+            self.endDate = 0.0
+            self.stopAcceptingBetsDate = 0.0
+            self.storagePath = StoragePath(identifier:"betchild".concat(self.uuid.toString()))!
+            self.publicPath = PublicPath(identifier: "betchild".concat(self.uuid.toString()))!  
         }
     }
 
