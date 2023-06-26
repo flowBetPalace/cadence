@@ -17,7 +17,7 @@ access(all) contract FlowBetPalace {
     //createdBetsPub createdBetsPriv
     //only for development purposes
     pub var createdBetsPub: [PublicPath]
-    pub var createdBetsPriv: [PrivatePath]
+    pub var createdBetsStorage: [StoragePath]
 
     //BetPublicInterface
     //public interface of Bet resources
@@ -48,6 +48,10 @@ access(all) contract FlowBetPalace {
     //admin interface of ChildBet resources
     pub resource interface ChildBetAdminInterface {
         
+    }
+
+    pub resource interface AdminInterface {
+        pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath)
     }
 
     // Bet
@@ -128,10 +132,10 @@ access(all) contract FlowBetPalace {
     }
 
     // Admin
-    pub resource Admin {
+    pub resource Admin: AdminInterface {
 
-        pub fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
-            FlowBetPalace.addBet(_publicPath:_publicPath,_privatePath:_privatePath)
+        pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
+            FlowBetPalace.addBet(_publicPath:_publicPath,_storagePath:_storagePath)
         }
         
     }
@@ -142,9 +146,9 @@ access(all) contract FlowBetPalace {
 
     // addBet
     // for development 
-    access(account) fun addBet(_publicPath: PublicPath,_privatePath: PrivatePath){
+    access(account) fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
         self.createdBetsPub[0] = _publicPath
-        self.createdBetsPriv[0] = _privatePath
+        self.createdBetsStorage[0] = _storagePath
     }
 
     
@@ -170,11 +174,16 @@ access(all) contract FlowBetPalace {
         self.publicPath = /public/flowBetPalace
         self.adminStoragePath = /storage/flowBetPalaceAdmin
         self.adminPublicPath = /public/flowBetPalaceAdmin
-        //store admin resource to creator vault when this contract is deployed 
+
+        // store admin resource to creator vault when this contract is deployed 
         self.account.save(<-create Admin(), to: /storage/flowBetPalaceAdmin)
-        //development purpose variables
+
+        // create public link to the admin resource
+        self.account.link<&AnyResource{FlowBetPalace.AdminInterface}>(/public/flowBetPalaceAdmin, target: /storage/flowBetPalaceAdmin)
+        
+        // development purpose variables
         self.createdBetsPub = []
-        self.createdBetsPriv = []
+        self.createdBetsStorage = []
     }
 
 }
