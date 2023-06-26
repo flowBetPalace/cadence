@@ -1,16 +1,9 @@
 import FlowBetPalace from 0x01
 
-transaction {
+transaction(name: String,startDate: String,endDate: String,description: String,imagelink: String,category: String) {
 
   prepare(acct: AuthAccount) {
-    let name: String = "bet1"
-    let startDate: String = "1687771493933"
-    let endDate: String = "1687771495935"
-    let description: String = "bet desc"
-    let imagelink: String = "image"
-    let category: String = "football"
-
-
+    
     // Retrieve admin Reference of the admin resource
     var acctAdminCapability = acct.getCapability(FlowBetPalace.adminPublicPath)
     var acctAdminRef = acctAdminCapability.borrow<&AnyResource{FlowBetPalace.AdminInterface}>() ?? panic("Could not borrow admin reference")
