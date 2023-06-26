@@ -112,9 +112,8 @@ access(all) contract FlowBetPalace {
 
             // publicPath going to be unique , name is average
             // but endDate determined with milliseconds is a value with uniqueness
-            var genericPath: String = "/bet/"
-            self.storagePath = StoragePath(identifier: "/storage".concat(genericPath).concat(name).concat(endDate))!
-            self.publicPath = PublicPath(identifier: "/public".concat(genericPath).concat(name).concat(endDate))!
+            self.storagePath = StoragePath(identifier:"bet".concat(name).concat(endDate))!
+            self.publicPath = PublicPath(identifier: "bet".concat(name).concat(endDate))!       
         }
 
     }
@@ -141,14 +140,16 @@ access(all) contract FlowBetPalace {
     }
 
     pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
+        
         return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+        
     }
 
     // addBet
     // for development 
     access(account) fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
-        self.createdBetsPub[0] = _publicPath
-        self.createdBetsStorage[0] = _storagePath
+        self.createdBetsPub.append(_publicPath)
+        self.createdBetsStorage.append(_storagePath)
     }
 
     
