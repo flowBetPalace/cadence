@@ -51,6 +51,14 @@ access(all) contract FlowBetPalace {
     }
 
     pub resource interface AdminInterface {
+        // createBet 
+        // newBet is created and event is emitted 
+        // application will get bets from this emitted events
+        // create bet is restricted for only admins, since an event is emitted at every bet creation, 
+        // we only want an event is emitted for the bets created by the organization
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet
+        // addBet
+        // this is for development purposes, in production you get bets from events
         pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath)
     }
 
@@ -135,12 +143,15 @@ access(all) contract FlowBetPalace {
         // createBet 
         // newBet is created and event is emitted 
         // application will get bets from this emitted events
+        // create bet is restricted for only admins, since an event is emitted at every bet creation, 
+        // we only want an event is emitted for the bets created by the organization
         pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: String,endDate: String): @Bet{
             emit createdBet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
             return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
         }
+
         // addBet
-        // this is for development purposes, in production events are get from events
+        // this is for development purposes, in production you get bets from events
         pub fun addBet(_publicPath: PublicPath,_storagePath: StoragePath){
             FlowBetPalace.createdBetsPub.append(_publicPath)
             FlowBetPalace.createdBetsStorage.append(_storagePath)
