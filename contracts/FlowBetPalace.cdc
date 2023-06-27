@@ -39,7 +39,7 @@ access(all) contract FlowBetPalace {
 
         //createChildBet
         //create a new child bet resource
-        pub fun createChildBet(name:String,options: [String]):@ChildBet
+        pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet
     }
 
     //ChildBetPublicInterface
@@ -60,7 +60,7 @@ access(all) contract FlowBetPalace {
         // application will get bets from this emitted events
         // create bet is restricted for only admins, since an event is emitted at every bet creation, 
         // we only want an event is emitted for the bets created by the organization
-        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64): @Bet
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64): @Bet
 
     }
 
@@ -75,6 +75,7 @@ access(all) contract FlowBetPalace {
         pub let imageLink: String
         pub let category: String
         pub let startDate: UFix64
+        pub let stopAcceptingBetsDate: UFix64
         pub let endDate: UFix64
         pub let storagePath: StoragePath
         pub let publicPath: PublicPath
@@ -91,18 +92,19 @@ access(all) contract FlowBetPalace {
 
         //createChildBet
         //create a new child bet resource
-        pub fun createChildBet(name:String,options: [String]):@ChildBet{
-            return <- create ChildBet(name:name,options: options)
+        pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet{
+            return <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate)
         }
 
 
         //resource initializer
-        init(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64){
+        init(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64){
             self.name = name
             self.description = description
             self.imageLink = imageLink
             self.category = category
             self.startDate = startDate
+            self.stopAcceptingBetsDate = stopAcceptingBetsDate
             self.endDate = endDate
             self.childBetsPath = []
 
@@ -160,16 +162,16 @@ access(all) contract FlowBetPalace {
         }
 
 
-        init(name: String, options: [String]){
+        init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64){
             self.name = name
             self.options = options
             self.winnerOptionsIndex = []
             self.optionOdds = {}
             self.optionsValueAmount= {}
             self.totalAmount = 0.0
-            self.startDate = 0.0
-            self.endDate = 0.0
-            self.stopAcceptingBetsDate = 0.0
+            self.startDate = startDate
+            self.endDate = endDate
+            self.stopAcceptingBetsDate = stopAcceptingBetsDate
             self.storagePath = StoragePath(identifier:"betchild".concat(self.uuid.toString()))!
             self.publicPath = PublicPath(identifier: "betchild".concat(self.uuid.toString()))!  
         }
@@ -187,8 +189,8 @@ access(all) contract FlowBetPalace {
         // application will get bets from this emitted events
         // create bet is restricted for only admins, since an event is emitted at every bet creation, 
         // we only want an event is emitted for the bets created by the organization
-        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64): @Bet{
-            return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate)
+        pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64): @Bet{
+            return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,stopAcceptingBetsDate:stopAcceptingBetsDate)
         }
         
     }
