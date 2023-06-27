@@ -7,6 +7,7 @@
 // The flow for create each bet event and its custom wagers("child bets") is create a bet resource(a football match) , 
 // add "child" bets resources on each bet resource(who win the match , amount of goals a team scores, wich player scores,...)
 // finally the users bet on each "child" bet and get a resource as receipt of the bet
+import FlowToken from 0x05
 
 access(all) contract FlowBetPalace {
 
@@ -277,6 +278,8 @@ access(all) contract FlowBetPalace {
     // private path for the user bets switchboard, should be only accessible by the user
     pub let userSwitchBoardPrivatePath: PrivatePath
     
+    // Flow token vault
+    access(contract) let flowVault: @FlowToken.Vault
 
     init(){
         self.storagePath = /storage/flowBetPalace
@@ -290,6 +293,9 @@ access(all) contract FlowBetPalace {
 
         // create public link to the admin resource
         self.account.link<&AnyResource{FlowBetPalace.AdminInterface}>(/public/flowBetPalaceAdmin, target: /storage/flowBetPalaceAdmin)
+
+        //get empty vault
+        self.flowVault <- FlowToken.createEmptyVault()
         
     }
 
