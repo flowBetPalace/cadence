@@ -98,7 +98,7 @@ access(all) contract FlowBetPalace {
         //createChildBet
         //create a new child bet resource
         pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet{
-            return <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate)
+            return <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
         }
 
 
@@ -124,6 +124,9 @@ access(all) contract FlowBetPalace {
 
     // ChildBet
     pub resource ChildBet: ChildBetPublicInterface,  ChildBetAdminInterface{
+        // parent bet uuid
+        pub let betUuid: String
+
         pub let name: String
         // options
         // possible options where the user can bet
@@ -157,7 +160,19 @@ access(all) contract FlowBetPalace {
         access(self) fun emitbetChildData(){
         }
 
-        pub fun newBet(){
+        pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
+            //get vault amount
+            let amount = vault.balance   
+            //get actual resource uuid
+            let uuid = self.uuid.toString()
+            //add money sended by user to the vault
+            FlowBetPalace.flowVault.deposit(from:<-vault)
+            //update option value amount
+            self.optionsValueAmount[optionIndex] = self.optionsValueAmount[optionIndex]! + UFix64(amount)
+            //update option odds 1 + the decimal valu
+            self.optionOdds[optionIndex] = self.totalAmount / self.optionsValueAmount[optionIndex]! 
+            //emit event with new values
+            return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
         }
 
         pub fun chechPrize(){
@@ -167,7 +182,7 @@ access(all) contract FlowBetPalace {
         }
 
 
-        init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64){
+        init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,betUuid: String){
             self.name = name
             self.options = options
             self.winnerOptionsIndex = []
@@ -176,9 +191,23 @@ access(all) contract FlowBetPalace {
             self.totalAmount = 0.0
             self.startDate = startDate
             self.endDate = endDate
+            self.betUuid = betUuid
             self.stopAcceptingBetsDate = stopAcceptingBetsDate
             self.storagePath = StoragePath(identifier:"betchild".concat(self.uuid.toString()))!
             self.publicPath = PublicPath(identifier: "betchild".concat(self.uuid.toString()))!  
+            
+            let optionsAmount = options.length
+
+            if(optionsAmount<2){
+                panic("you have to add at least 2options")
+            }
+            //initialize dictionary fields 
+            for index,element in options{
+                //initialize and add default odds value
+                self.optionOdds[UInt64(index)] = 1.5
+                //add default value of 1 flow, for the algorithm
+                self.optionsValueAmount[UInt64(index)] = 1.0
+            }
         }
     }
 
@@ -187,15 +216,18 @@ access(all) contract FlowBetPalace {
         pub let amount: UFix64
         pub let childBetUuid: String
         pub let betUuid: String
+        pub let childUuid: String
         pub let choosenOption: UInt64
+        //later access to the childbet resource
         pub let childBetPath: PublicPath
 
-        init(amount: UFix64,uuid: String, betUuid: String,choosenOption: UInt64,childBetPath: PublicPath){
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
             self.choosenOption = choosenOption
             self.childBetPath = childBetPath
+            self.childUuid = childBetUuid
         }
         
     }
