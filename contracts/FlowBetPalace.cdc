@@ -54,6 +54,13 @@ access(all) contract FlowBetPalace {
         
     }
 
+    // UserSwitchboardInterface
+    // this resource stores all the bets of the user ,
+    // the resource is stored on user storage
+    pub resource interface UserSwitchboardInterface {
+
+    }
+
     pub resource interface AdminInterface {
         // createBet 
         // newBet is created at the resource constructor and event is emitted 
@@ -179,8 +186,32 @@ access(all) contract FlowBetPalace {
 
     // UserBet
     pub resource UserBet {
+        pub let amount: UFix64
+        pub let childBetUuid: String
+        pub let betUuid: String
+        pub let choosenOption: UInt64
+        pub let childBetPath: PublicPath
+        
+        init(amount: UFix64,uuid: String, betUuid: String,choosenOption: UInt64,childBetPath: PublicPath){
+            self.amount = amount
+            self.childBetUuid = uuid
+            self.betUuid = betUuid
+            self.choosenOption = choosenOption
+            self.childBetPath = childBetPath
+        }
+        
+    }
+
+    
+
+    /// UserSwitchboardInterface
+    // this resource stores all the bets of the user ,
+    // the resource is stored on user storage
+    pub resource UserSwitchboard: UserSwitchboardInterface  {
 
     }
+
+    // create Userswitchboard resource for new users
 
     // Admin
     pub resource Admin: AdminInterface {
