@@ -286,7 +286,6 @@ access(all) contract FlowBetPalace {
         }
         
     }
-
     
 
     
@@ -317,6 +316,8 @@ access(all) contract FlowBetPalace {
     // Flow token vault
     access(contract) let flowVault: @FlowToken.Vault
 
+    // Flow token that recaude fees
+    access(contract) let feesBalances: @FlowToken.Vault
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
@@ -333,6 +334,7 @@ access(all) contract FlowBetPalace {
 
         //get empty vault
         self.flowVault <- FlowToken.createEmptyVault()
+        self.feesBalances <- FlowToken.createEmptyVault()
         
     }
 
