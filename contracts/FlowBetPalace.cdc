@@ -274,6 +274,10 @@ access(all) contract FlowBetPalace {
     // the public link for the storagePath
     pub let adminPublicPath : PublicPath
 
+    // userSwitchBoardStoragePath
+    // private path for the user bets switchboard, should be only accessible by the user
+    pub let userSwitchBoardStoragePath: StoragePath
+
     // userSwitchBoardPrivatePath
     // private path for the user bets switchboard, should be only accessible by the user
     pub let userSwitchBoardPrivatePath: PrivatePath
@@ -286,6 +290,7 @@ access(all) contract FlowBetPalace {
         self.publicPath = /public/flowBetPalace
         self.adminStoragePath = /storage/flowBetPalaceAdmin
         self.userSwitchBoardPrivatePath = /private/flowBetPalaceSwitchboard
+        self.userSwitchBoardStoragePath = /storage/flowBetPalaceSwitchboard
         self.adminPublicPath = /public/flowBetPalaceAdmin
 
         // store admin resource to creator vault when this contract is deployed 
