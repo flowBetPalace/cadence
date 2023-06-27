@@ -14,15 +14,19 @@ access(all) contract FlowBetPalace {
     // emit an event when an event has been created 
     pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,uuid: String)
 
-    // betChilds
+    // betChildData
     // every event childs data will be published by this event every time gets updated and queried by the app
     // betChildUuid is the unique identifier of the child, 
     // while data contains 2 strings array,[[bet options],[quote/odds of each bet]], the bet option index matches with the quote index
     pub event betChildData(data:[[String]],betChildUuid:String,name: String)
 
-    //betChilds
-    //just emit an event every time a bet child is created
+    // createbetChilds
+    // just emit an event every time a bet child is created for every bet
     pub event createdBetChilds(betUuid: String,betchildUuid: String)
+
+    // setupSwitchBoard
+    // emit an event when the user stores the switchboard
+    pub event setupSwitchBoard(userAddress: String)
 
     //BetPublicInterface
     //public interface of Bet resources
@@ -191,7 +195,7 @@ access(all) contract FlowBetPalace {
         pub let betUuid: String
         pub let choosenOption: UInt64
         pub let childBetPath: PublicPath
-        
+
         init(amount: UFix64,uuid: String, betUuid: String,choosenOption: UInt64,childBetPath: PublicPath){
             self.amount = amount
             self.childBetUuid = uuid
@@ -212,6 +216,11 @@ access(all) contract FlowBetPalace {
     }
 
     // create Userswitchboard resource for new users
+    pub fun createUserSwitchBoard(address: String): @UserSwitchboard{
+        //emit an event for help frontend determine if user already has a switchboard
+        emit setupSwitchBoard(userAddress:address)
+        return <- create UserSwitchboard()
+    }
 
     // Admin
     pub resource Admin: AdminInterface {
@@ -241,15 +250,20 @@ access(all) contract FlowBetPalace {
     // adminStoragePath where the admin resource should be located
     pub let adminStoragePath : StoragePath
 
-    // ddminPublicPath for FlowBetPalace account resource
+    // adminPublicPath for FlowBetPalace account resource
     // the public link for the storagePath
     pub let adminPublicPath : PublicPath
+
+    // userSwitchBoardPrivatePath
+    // private path for the user bets switchboard, should be only accessible by the user
+    pub let userSwitchBoardPrivatePath: PrivatePath
     
 
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
         self.adminStoragePath = /storage/flowBetPalaceAdmin
+        self.userSwitchBoardPrivatePath = /private/flowBetPalaceSwitchboard
         self.adminPublicPath = /public/flowBetPalaceAdmin
 
         // store admin resource to creator vault when this contract is deployed 
