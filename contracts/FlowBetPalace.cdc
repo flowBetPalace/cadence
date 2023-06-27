@@ -161,10 +161,18 @@ access(all) contract FlowBetPalace {
         }
 
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
+            // vault balance
+            let amountWithFees = vault.balance
+            //fees amount
+            let feesAmount = amountWithFees * FlowBetPalace.feesPercentage /100.0
             //get vault amount
-            let amount = vault.balance   
+            let amount = amountWithFees - feesAmount
             //get actual resource uuid
             let uuid = self.uuid.toString()
+            //take 1% fees
+            let feesVault <- vault.withdraw(amount:feesAmount)
+            //deposit fees to fees vault
+            FlowBetPalace.feesVault.deposit(from:<-feesVault)
             //add money sended by user to the vault
             FlowBetPalace.flowVault.deposit(from:<-vault)
             //update option value amount
@@ -317,7 +325,8 @@ access(all) contract FlowBetPalace {
     access(contract) let flowVault: @FlowToken.Vault
 
     // Flow token that recaude fees
-    access(contract) let feesBalances: @FlowToken.Vault
+    access(contract) let feesVault: @FlowToken.Vault
+    pub let feesPercentage: UFix64
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
@@ -325,7 +334,7 @@ access(all) contract FlowBetPalace {
         self.userSwitchBoardPrivatePath = /private/flowBetPalaceSwitchboard
         self.userSwitchBoardStoragePath = /storage/flowBetPalaceSwitchboard
         self.adminPublicPath = /public/flowBetPalaceAdmin
-
+        self.feesPercentage = 1.0 
         // store admin resource to creator vault when this contract is deployed 
         self.account.save(<-create Admin(), to: /storage/flowBetPalaceAdmin)
 
@@ -334,7 +343,7 @@ access(all) contract FlowBetPalace {
 
         //get empty vault
         self.flowVault <- FlowToken.createEmptyVault()
-        self.feesBalances <- FlowToken.createEmptyVault()
+        self.feesVault <- FlowToken.createEmptyVault()
         
     }
 
