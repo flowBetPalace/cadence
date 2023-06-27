@@ -220,6 +220,11 @@ access(all) contract FlowBetPalace {
             return <- self.activeBets.remove(key: uuid)!
         }
 
+        // getMyBetsKeys
+        pub fun getMyBetsKeys():[String]{
+            return self.activeBets.keys
+        }
+
         destroy (){
             destroy self.activeBets
         }
