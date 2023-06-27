@@ -58,13 +58,6 @@ access(all) contract FlowBetPalace {
         
     }
 
-    // UserSwitchboardInterface
-    // this resource stores all the bets of the user ,
-    // the resource is stored on user storage
-    pub resource interface UserSwitchboardInterface {
-
-    }
-
     pub resource interface AdminInterface {
         // createBet 
         // newBet is created at the resource constructor and event is emitted 
@@ -211,8 +204,29 @@ access(all) contract FlowBetPalace {
     /// UserSwitchboardInterface
     // this resource stores all the bets of the user ,
     // the resource is stored on user storage
-    pub resource UserSwitchboard: UserSwitchboardInterface  {
+    pub resource UserSwitchboard  {
+        // stores the active bets that user has started {betuuid:userbetresource}
+        access(contract) var activeBets: @{String: UserBet}
 
+        // addBet
+        // function that adds a new bet to the user activebets
+        pub fun addBet(newBet: @UserBet){
+            self.activeBets[newBet.uuid.toString()] <-! newBet
+        }
+            
+        // withdrawBet
+        // function that withdraw a bet from the UserSwitchBoard for get the rewards at the child bet resources
+        pub fun withdrawBet(uuid: String): @UserBet{
+            return <- self.activeBets.remove(key: uuid)!
+        }
+
+        destroy (){
+            destroy self.activeBets
+        }
+
+        init(){
+            self.activeBets <- {}
+        }
     }
 
     // create Userswitchboard resource for new users
