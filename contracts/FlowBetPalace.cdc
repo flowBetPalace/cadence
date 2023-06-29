@@ -162,7 +162,7 @@ access(all) contract FlowBetPalace {
 
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
             //return if winners announced
-            if(self.winnerOptionsIndex.length>0){
+            if(self.winnerOptionsIndex.length>0 || getCurrentBlock().timestamp>self.stopAcceptingBetsDate){
                 panic("bet finished")
             }
             // vault balance
