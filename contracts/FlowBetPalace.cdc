@@ -20,10 +20,10 @@ access(all) contract FlowBetPalace {
     // betChildUuid is the unique identifier of the child, 
     // while data contains 2 strings array,[[bet options],[quote/odds of each bet]], the bet option index matches with the quote index
     pub event betChildData(data:[[String]],betChildUuid:String,name: String)
-
+    
     // createbetChilds
     // just emit an event every time a bet child is created for every bet
-    pub event createdBetChilds(betUuid: String,betchildUuid: String)
+    pub event createdBetChilds(betUuid: String,betchildUuid: String,name:String,options:[String])
 
     // setupSwitchBoard
     // emit an event when the user stores the switchboard
@@ -102,7 +102,7 @@ access(all) contract FlowBetPalace {
             //create the new resource
             let newResource <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
             //emit event of createdBetChild
-            emit createdBetChilds(betUuid: self.uuid.toString(),betchildUuid: newResource.uuid.toString())
+            emit createdBetChilds(betUuid: self.uuid.toString(),betchildUuid: newResource.uuid.toString(),name:name,options:options)
             return <- newResource
         }
 
