@@ -57,7 +57,7 @@ access(all) contract FlowBetPalace {
     //ChildBetPublicInterface
     //admin interface of ChildBet resources
     pub resource interface ChildBetAdminInterface {
-        
+        pub fun setWinnerOptions(winnerOptions: [UInt64])
     }
 
     pub resource interface AdminInterface {
@@ -209,7 +209,7 @@ access(all) contract FlowBetPalace {
         }
 
         //set winner options
-        access(contract) fun setWinnerOptions(winnerOptions: [UInt64]){
+        pub fun setWinnerOptions(winnerOptions: [UInt64]){
             self.winnerOptionsIndex = winnerOptions
         }
 
