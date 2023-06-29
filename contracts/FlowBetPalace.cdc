@@ -50,7 +50,8 @@ access(all) contract FlowBetPalace {
     //ChildBetPublicInterface
     //public interface of ChildBet resources
     pub resource interface ChildBetPublicInterface {
-        
+        pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet
+        pub fun chechPrize(bet: @UserBet): @FlowToken.Vault
     }
 
     //ChildBetPublicInterface
