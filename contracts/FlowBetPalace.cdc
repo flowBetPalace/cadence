@@ -134,7 +134,7 @@ access(all) contract FlowBetPalace {
 
         // winnerOptionsIndex
         // options that have winned
-        pub let winnerOptionsIndex: [UInt64]
+        pub var winnerOptionsIndex: [UInt64]
 
         // optionOdds 
         // decimal odds of of every option
@@ -161,6 +161,10 @@ access(all) contract FlowBetPalace {
         }
 
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
+            //return if winners announced
+            if(self.winnerOptionsIndex.length>0){
+                panic("bet finished")
+            }
             // vault balance
             let amountWithFees = vault.balance
             //fees amount
@@ -183,10 +187,29 @@ access(all) contract FlowBetPalace {
             return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
         }
 
-        pub fun chechPrize(){
+        pub fun chechPrize(bet: @UserBet): @FlowToken.Vault{
+            // check if the bet is winner
+            let value: Bool = self.winnerOptionsIndex.contains(bet.choosenOption)
+
+            // if its winner give him the reward
+            if(value==true){
+                // get the won amount
+                let amount: UFix64 = bet.amount
+                // destroy the bet resource
+                destroy bet
+                // return a vault with the money
+                return <- FlowBetPalace.flowVault.withdraw(amount:amount)
+            }else{
+                // destroy the bet resource
+                destroy bet
+                // return an empty vault since the user didnt win anything
+                return <- FlowBetPalace.flowVault.withdraw(amount:0.0)
+            }
         }
 
-        access(contract) fun setWinnerOptions(){
+        //set winner options
+        access(contract) fun setWinnerOptions(winnerOptions: [UInt64]){
+            self.winnerOptionsIndex = winnerOptions
         }
 
 
