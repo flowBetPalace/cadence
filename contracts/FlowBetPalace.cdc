@@ -159,6 +159,24 @@ access(all) contract FlowBetPalace {
         pub let endDate: UFix64
         pub let stopAcceptingBetsDate: UFix64
         access(self) fun emitbetChildData(){
+            // define empty arrays
+            var options: [String] = []
+            var odds: [String] = []
+            // add childBet data to arrays
+            for index,element in self.options{
+                //add option to options array
+                options.append(self.options[UInt64(index)])
+                //convert UFix to String
+                let oddsString = self.optionOdds[UInt64(index)]!.toString()
+                //add quote to qyotes array
+                odds.append(oddsString)
+            }
+            //make an array that stores both arrays
+            var data:[[String]] = []
+            data.append(options)
+            data.append(odds)
+            // emit event
+            emit betChildData(data:data,betChildUuid:self.uuid.toString(),name: self.name)
         }
 
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
@@ -184,6 +202,10 @@ access(all) contract FlowBetPalace {
             self.optionsValueAmount[optionIndex] = self.optionsValueAmount[optionIndex]! + UFix64(amount)
             //update option odds 1 + the decimal valu
             self.optionOdds[optionIndex] = self.totalAmount / self.optionsValueAmount[optionIndex]! 
+            log("data updated")
+            //emit event with new data
+            self.emitbetChildData()
+            log("event emitted")
             //emit event with new values
             return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
         }
