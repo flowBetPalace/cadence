@@ -99,7 +99,11 @@ access(all) contract FlowBetPalace {
         //createChildBet
         //create a new child bet resource
         pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet{
-            return <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
+            //create the new resource
+            let newResource <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
+            //emit event of createdBetChild
+            emit createdBetChilds(betUuid: self.uuid.toString(),betchildUuid: newResource.uuid.toString())
+            return <- newResource
         }
 
 
