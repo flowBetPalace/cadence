@@ -29,6 +29,9 @@ access(all) contract FlowBetPalace {
     // emit an event when the user stores the switchboard
     pub event setupSwitchBoard(userAddress: String)
 
+    // betWinnersOptions
+    pub event betWinnerOptions(betchildUuid: String,winnerOptionsIndex: [UInt64])
+
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
@@ -237,6 +240,7 @@ access(all) contract FlowBetPalace {
         //set winner options
         pub fun setWinnerOptions(winnerOptions: [UInt64]){
             self.winnerOptionsIndex = winnerOptions
+            emit  betWinnerOptions(betchildUuid: self.uuid.toString(),winnerOptionsIndex: winnerOptions)
         }
 
 
