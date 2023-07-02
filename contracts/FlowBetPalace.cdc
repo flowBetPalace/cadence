@@ -32,6 +32,25 @@ access(all) contract FlowBetPalace {
     // betWinnersOptions
     pub event betWinnerOptions(betchildUuid: String,winnerOptionsIndex: [UInt64])
 
+    pub struct ChildBetStruct {
+        pub let name: String
+        pub let options:[String]
+        pub let startDate: UFix64
+        pub let stopAcceptingBetsDate: UFix64
+        pub let endDate: UFix64
+        pub let winnerOptionsIndex: [UInt64]
+        pub let odds: [String]
+
+        init(name: String,options:[String],startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,winnerOptionsIndex: [UInt64],odds:[String]){
+            self.name = name
+            self.options = options
+            self.startDate = startDate
+            self.stopAcceptingBetsDate = stopAcceptingBetsDate
+            self.endDate = endDate
+            self.winnerOptionsIndex = winnerOptionsIndex
+            self.odds = odds
+        }
+    }
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
@@ -55,6 +74,7 @@ access(all) contract FlowBetPalace {
     pub resource interface ChildBetPublicInterface {
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet
         pub fun chechPrize(bet: @UserBet): @FlowToken.Vault
+        pub fun getData():FlowBetPalace.ChildBetStruct
     }
 
     //ChildBetPublicInterface
@@ -186,6 +206,20 @@ access(all) contract FlowBetPalace {
             emit betChildData(data:data,betChildUuid:self.uuid.toString(),name: self.name)
         }
 
+         access(self) fun getOddsData():[String]{
+            // define empty arrays
+            var odds: [String] = []
+            // add childBet data to arrays
+            for index,element in self.options{
+                //convert UFix to String
+                let oddsString = self.optionOdds[UInt64(index)]!.toString()
+                //add quote to qyotes array
+                odds.append(oddsString)
+            }
+            
+            return odds
+        }
+
         pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
             //return if winners announced
             if(self.winnerOptionsIndex.length>0 || getCurrentBlock().timestamp>self.stopAcceptingBetsDate){
@@ -243,6 +277,18 @@ access(all) contract FlowBetPalace {
             emit  betWinnerOptions(betchildUuid: self.uuid.toString(),winnerOptionsIndex: winnerOptions)
         }
 
+        pub fun getData():FlowBetPalace.ChildBetStruct{
+            let odds = self.getOddsData()
+            return FlowBetPalace.ChildBetStruct(
+                name:self.name,
+                options:self.options,
+                endDate:self.endDate,
+                startDate:self.startDate,
+                stopAcceptingBetsDate:self.stopAcceptingBetsDate,
+                winnerOptionsIndex:self.winnerOptionsIndex,
+                odds:odds
+            )
+        }
 
         init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,betUuid: String){
             self.name = name
