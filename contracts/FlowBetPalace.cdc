@@ -354,7 +354,7 @@ access(all) contract FlowBetPalace {
         
     }
     
-    pub resource script {
+    pub resource Script {
         pub fun getBets(amount: Int):[[String]]{
             return FlowBetPalace.betsArray.slice(from:0,upTo:amount)
         }
@@ -432,6 +432,12 @@ access(all) contract FlowBetPalace {
 
         // create public link to the admin resource
         self.account.link<&AnyResource{FlowBetPalace.AdminInterface}>(/public/flowBetPalaceAdmin, target: /storage/flowBetPalaceAdmin)
+
+        // store admin resource to creator vault when this contract is deployed 
+        self.account.save(<-create Script(), to: /storage/flowBetPalaceScript)
+
+        // create public link to the admin resource
+        self.account.link<&FlowBetPalace.Script>(/public/flowBetPalaceScript, target: /storage/flowBetPalaceScript)
 
         //get empty vault
         self.flowVault <- FlowToken.createEmptyVault()
