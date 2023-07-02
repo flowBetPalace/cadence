@@ -51,6 +51,26 @@ access(all) contract FlowBetPalace {
             self.odds = odds
         }
     }
+
+    pub struct BetDataStruct {
+        pub let name: String
+        pub let description: String
+        pub let imageLink: String
+        pub let category: String
+        pub let startDate: UFix64
+        pub let stopAcceptingBetsDate: UFix64
+        pub let endDate: UFix64
+
+        init(name: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,description: String,imageLink:String,category: String){
+            self.name = name
+            self.startDate = startDate
+            self.stopAcceptingBetsDate = stopAcceptingBetsDate
+            self.endDate = endDate
+            self.description = description
+            self.imageLink = imageLink
+            self.category = category
+        }
+    }
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
@@ -128,6 +148,19 @@ access(all) contract FlowBetPalace {
         //getBetChilds
         pub fun getBetChilds():[String]{
             return self.childBetsUuid
+        }
+
+        //getBetData
+        pub fun getBetData():BetDataStruct{
+            return FlowBetPalace.BetDataStruct(
+                name: self.name,
+                startDate: self.startDate,
+                endDate: self.endDate,
+                stopAcceptingBetsDate: self.stopAcceptingBetsDate,
+                description: self.description,
+                imageLink: self.imageLink,
+                category: self.category
+            )
         }
 
 
