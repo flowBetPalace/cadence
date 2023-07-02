@@ -360,7 +360,16 @@ access(all) contract FlowBetPalace {
         }
 
         pub fun getCategoryBets(category: String, amount: Int,skip: Int):[[String]]{
-            return FlowBetPalace.betsCategoryArray[category]!.slice(from: skip,upTo:amount)
+            if(FlowBetPalace.betsCategoryArray[category]!.length>skip+amount){
+                return FlowBetPalace.betsCategoryArray[category]!.slice(from: skip,upTo:amount)
+            }else{
+                if(FlowBetPalace.betsCategoryArray[category]!.length<5){
+                    return FlowBetPalace.betsCategoryArray[category]!.slice(from: 0,upTo:FlowBetPalace.betsCategoryArray[category]!.length)
+                }else{
+                    return FlowBetPalace.betsCategoryArray[category]!.slice(from: 0,upTo:5)
+
+                }
+            }
         }
     }
     
