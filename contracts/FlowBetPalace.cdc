@@ -356,7 +356,11 @@ access(all) contract FlowBetPalace {
     
     pub resource Script {
         pub fun getBets(amount: Int):[[String]]{
-            return FlowBetPalace.betsArray.slice(from:0,upTo:amount)
+            if(FlowBetPalace.betsArray.length>amount){
+                return FlowBetPalace.betsArray.slice(from:0,upTo:amount)
+            }else{
+                return FlowBetPalace.betsArray.slice(from:0,upTo:FlowBetPalace.betsArray.length)
+            }
         }
 
         pub fun getCategoryBets(category: String, amount: Int,skip: Int):[[String]]{
