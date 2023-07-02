@@ -346,6 +346,11 @@ access(all) contract FlowBetPalace {
         // create bet is restricted for only admins, since an event is emitted at every bet creation, 
         // we only want an event is emitted for the bets created by the organization
         pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64): @Bet{
+            //initialize category if its not
+            FlowBetPalace.initializeCategory(key:category)
+            //store the bet for be script-accessible
+            FlowBetPalace.betsArray.insert(at:0,[name,description,imageLink,category])
+            FlowBetPalace.betsCategoryArray[category]!.insert(at:0,[name,description,imageLink,category])
             return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,stopAcceptingBetsDate:stopAcceptingBetsDate)
         }
         
@@ -400,7 +405,7 @@ access(all) contract FlowBetPalace {
             self.initializedCategoryDictionary.insert(key:key,true)
         }
     }
-    
+
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
