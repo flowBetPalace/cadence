@@ -389,6 +389,17 @@ access(all) contract FlowBetPalace {
     access(contract) var betsArray: [[String]]
     access(contract) var betsCategoryArray: {String:[[String]]}
     access(contract) var initializedCategoryDictionary: {String:Bool}
+
+    //betsCategoryArray track bets on each category, 
+    //as it is a dictionary the key have to be initialized
+    //this function checks if the key initialized and if not, just initialize it
+    access(contract) fun initializeCategory(key: String){
+        if(self.initializedCategoryDictionary[key]==nil){
+            //initialize category
+            self.betsCategoryArray.insert(key:key,[])
+            self.initializedCategoryDictionary.insert(key:key,true)
+        }
+    }
     
     init(){
         self.storagePath = /storage/flowBetPalace
