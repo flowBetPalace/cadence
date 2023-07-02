@@ -391,6 +391,10 @@ access(all) contract FlowBetPalace {
         self.userSwitchBoardStoragePath = /storage/flowBetPalaceSwitchboard
         self.adminPublicPath = /public/flowBetPalaceAdmin
         self.feesPercentage = 1.0 
+        self.betsArray = []
+        self.betsCategoryArray = {}
+        self.initializedCategoryDictionary = {}
+
         // store admin resource to creator vault when this contract is deployed 
         self.account.save(<-create Admin(), to: /storage/flowBetPalaceAdmin)
 
