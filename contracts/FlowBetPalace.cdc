@@ -346,10 +346,12 @@ access(all) contract FlowBetPalace {
         pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64): @Bet{
             //initialize category if its not
             FlowBetPalace.initializeCategory(key:category)
+            //create bet resource
+            let newBet <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,stopAcceptingBetsDate:stopAcceptingBetsDate)
             //store the bet for be script-accessible
-            FlowBetPalace.betsArray.insert(at:0,[name,description,imageLink,category])
-            FlowBetPalace.betsCategoryArray[category]!.insert(at:0,[name,description,imageLink,category])
-            return <- create Bet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,stopAcceptingBetsDate:stopAcceptingBetsDate)
+            FlowBetPalace.betsArray.insert(at:0,[newBet.uuid.toString(),name,description,imageLink,category])
+            FlowBetPalace.betsCategoryArray[category]!.insert(at:0,[newBet.uuid.toString(),name,description,imageLink,category])
+            return <-newBet
         }
         
     }
