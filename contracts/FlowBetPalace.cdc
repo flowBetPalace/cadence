@@ -59,6 +59,25 @@ access(all) contract FlowBetPalace {
             self.category = category
         }
     }
+
+    pub struct UserBetStruct {
+        pub let amount: UFix64
+        pub let childBetUuid: String
+        pub let betUuid: String
+        pub let childUuid: String
+        pub let choosenOption: UInt64
+        //later access to the childbet resource
+        pub let childBetPath: String
+
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath){
+            self.amount = amount
+            self.childBetUuid = uuid
+            self.betUuid = betUuid
+            self.choosenOption = choosenOption
+            self.childBetPath = childBetPath.toString()
+            self.childUuid = childBetUuid
+        }
+    }
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
@@ -366,6 +385,29 @@ access(all) contract FlowBetPalace {
         // getMyBetsKeys
         pub fun getMyBetsKeys():[String]{
             return self.activeBets.keys
+        }
+
+        //get bet data
+        pub fun getBetData(key:String): UserBetStruct{
+            
+            //take the userbet
+            let bet <- self.activeBets.remove(key:key)!
+
+            //make a struct based on userbet data
+            let betDataStruct = UserBetStruct(
+                amount: bet.amount,
+                uuid: bet.uuid.toString(), 
+                betUuid: bet.betUuid,
+                childBetUuid: bet.childBetUuid, 
+                choosenOption: bet.choosenOption,
+                childBetPath: bet.childBetPath
+            )
+
+            //save back the user bet
+            self.activeBets[key] <-! bet
+
+            //return the userbet data of that key
+            return betDataStruct
         }
 
         destroy (){
