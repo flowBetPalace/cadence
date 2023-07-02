@@ -354,7 +354,15 @@ access(all) contract FlowBetPalace {
         
     }
     
+    pub resource script {
+        pub fun getBets(amount: Int):[[String]]{
+            return FlowBetPalace.betsArray.slice(from:0,upTo:amount)
+        }
 
+        pub fun getCategoryBets(category: String, amount: Int):[[String]]{
+            return FlowBetPalace.betsCategoryArray[category]!.slice(from:0,upTo:amount)
+        }
+    }
     
     // storagePath for FlowBetPalace account resource
     // storage path where the Profile resource should be located
