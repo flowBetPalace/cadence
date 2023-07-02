@@ -61,8 +61,8 @@ access(all) contract FlowBetPalace {
     pub resource interface BetAdminInterface {
 
         //addChildBetCapability
-        //store child bets path
-        pub fun addChildBetPath(path:PublicPath)
+        //get bet childs uuid
+        pub fun getBetChilds():[String]
 
         //createChildBet
         //create a new child bet resource
@@ -110,23 +110,24 @@ access(all) contract FlowBetPalace {
         pub let publicPath: PublicPath
         
         //childBetsPath
-        //this is only for development purposes and for have a backup of the PublicPaths apart of the events
-        access(contract) var childBetsPath: [PublicPath]
-
-        //addChildBetCapability
-        //store capabilities that have access to each childPath
-        pub fun addChildBetPath(path:PublicPath){
-            self.childBetsPath.append(path)
-        }
+        //ttrack the bet childs uuid of a bet
+        access(contract) var childBetsUuid: [String]
 
         //createChildBet
         //create a new child bet resource
         pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet{
             //create the new resource
             let newResource <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
+            //add the betChild uuid to the array that tracks them
+            self.childBetsUuid.append(newResource.uuid.toString())
             //emit event of createdBetChild
             emit createdBetChilds(betUuid: self.uuid.toString(),betchildUuid: newResource.uuid.toString(),name:name,options:options)
             return <- newResource
+        }
+
+        //getBetChilds
+        pub fun getBetChilds():[String]{
+            return self.childBetsUuid
         }
 
 
@@ -139,7 +140,7 @@ access(all) contract FlowBetPalace {
             self.startDate = startDate
             self.stopAcceptingBetsDate = stopAcceptingBetsDate
             self.endDate = endDate
-            self.childBetsPath = []
+            self.childBetsUuid = []
 
             // publicPath going to be unique , name is average
             // but endDate determined with milliseconds is a value with uniqueness
