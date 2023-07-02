@@ -382,7 +382,14 @@ access(all) contract FlowBetPalace {
 
     // Flow token that recaude fees
     access(contract) let feesVault: @FungibleToken.Vault
+
     pub let feesPercentage: UFix64
+
+    //Data to be accesses from scripts
+    access(contract) var betsArray: [[String]]
+    access(contract) var betsCategoryArray: {String:[[String]]}
+    access(contract) var initializedCategoryDictionary: {String:Bool}
+    
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
