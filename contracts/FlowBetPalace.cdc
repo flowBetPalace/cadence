@@ -74,6 +74,11 @@ access(all) contract FlowBetPalace {
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
+    //getBetChildsUuid
+        pub fun getBetChilds():[String]
+
+        //getBetData
+        pub fun getBetData():BetDataStruct
     }
 
     //BetPublicInterface
