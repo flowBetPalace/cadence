@@ -11,27 +11,13 @@ import FlowToken from 0x05
 
 access(all) contract FlowBetPalace {
 
-    // createdBet
-    // emit an event when an event has been created 
-    pub event createdBet(name: String, description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,uuid: String)
-
     // betChildData
     // every event childs data will be published by this event every time gets updated and queried by the app
     // betChildUuid is the unique identifier of the child, 
     // while data contains 2 strings array,[[bet options],[quote/odds of each bet]], the bet option index matches with the quote index
     pub event betChildData(data:[[String]],betChildUuid:String,name: String)
     
-    // createbetChilds
-    // just emit an event every time a bet child is created for every bet
-    pub event createdBetChilds(betUuid: String,betchildUuid: String,name:String,options:[String])
-
-    // setupSwitchBoard
-    // emit an event when the user stores the switchboard
-    pub event setupSwitchBoard(userAddress: String)
-
-    // betWinnersOptions
-    pub event betWinnerOptions(betchildUuid: String,winnerOptionsIndex: [UInt64])
-
+    
     pub struct ChildBetStruct {
         pub let name: String
         pub let options:[String]
@@ -40,8 +26,9 @@ access(all) contract FlowBetPalace {
         pub let endDate: UFix64
         pub let winnerOptionsIndex: [UInt64]
         pub let odds: [String]
+        pub let uuid: String
 
-        init(name: String,options:[String],startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,winnerOptionsIndex: [UInt64],odds:[String]){
+        init(name: String,options:[String],startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,winnerOptionsIndex: [UInt64],odds:[String],uuid: String){
             self.name = name
             self.options = options
             self.startDate = startDate
@@ -49,6 +36,7 @@ access(all) contract FlowBetPalace {
             self.endDate = endDate
             self.winnerOptionsIndex = winnerOptionsIndex
             self.odds = odds
+            self.uuid = uuid
         }
     }
 
@@ -74,7 +62,7 @@ access(all) contract FlowBetPalace {
     //BetPublicInterface
     //public interface of Bet resources
     pub resource interface BetPublicInterface {
-    //getBetChildsUuid
+        //getBetChildsUuid
         pub fun getBetChilds():[String]
 
         //getBetData
@@ -146,7 +134,6 @@ access(all) contract FlowBetPalace {
             //add the betChild uuid to the array that tracks them
             self.childBetsUuid.append(newResource.uuid.toString())
             //emit event of createdBetChild
-            emit createdBetChilds(betUuid: self.uuid.toString(),betchildUuid: newResource.uuid.toString(),name:name,options:options)
             return <- newResource
         }
 
@@ -184,7 +171,6 @@ access(all) contract FlowBetPalace {
             // but endDate determined with milliseconds is a value with uniqueness
             self.storagePath = StoragePath(identifier:"bet".concat(self.uuid.toString()))!
             self.publicPath = PublicPath(identifier: "bet".concat(self.uuid.toString()))!     
-            emit createdBet(name:name,description:description, imageLink:imageLink,category:category,startDate:startDate,endDate:endDate,uuid:self.uuid.toString())
         }
 
     }
@@ -224,26 +210,6 @@ access(all) contract FlowBetPalace {
         pub let startDate: UFix64
         pub let endDate: UFix64
         pub let stopAcceptingBetsDate: UFix64
-        access(self) fun emitbetChildData(){
-            // define empty arrays
-            var options: [String] = []
-            var odds: [String] = []
-            // add childBet data to arrays
-            for index,element in self.options{
-                //add option to options array
-                options.append(self.options[UInt64(index)])
-                //convert UFix to String
-                let oddsString = self.optionOdds[UInt64(index)]!.toString()
-                //add quote to qyotes array
-                odds.append(oddsString)
-            }
-            //make an array that stores both arrays
-            var data:[[String]] = []
-            data.append(options)
-            data.append(odds)
-            // emit event
-            emit betChildData(data:data,betChildUuid:self.uuid.toString(),name: self.name)
-        }
 
          access(self) fun getOddsData():[String]{
             // define empty arrays
@@ -282,11 +248,7 @@ access(all) contract FlowBetPalace {
             self.optionsValueAmount[optionIndex] = self.optionsValueAmount[optionIndex]! + UFix64(amount)
             //update option odds 1 + the decimal valu
             self.optionOdds[optionIndex] = self.totalAmount / self.optionsValueAmount[optionIndex]! 
-            log("data updated")
-            //emit event with new data
-            self.emitbetChildData()
-            log("event emitted")
-            //emit event with new values
+            //return new bet
             return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
         }
 
@@ -313,11 +275,11 @@ access(all) contract FlowBetPalace {
         //set winner options
         pub fun setWinnerOptions(winnerOptions: [UInt64]){
             self.winnerOptionsIndex = winnerOptions
-            emit  betWinnerOptions(betchildUuid: self.uuid.toString(),winnerOptionsIndex: winnerOptions)
         }
 
         pub fun getData():FlowBetPalace.ChildBetStruct{
             let odds = self.getOddsData()
+            
             return FlowBetPalace.ChildBetStruct(
                 name:self.name,
                 options:self.options,
@@ -325,7 +287,8 @@ access(all) contract FlowBetPalace {
                 startDate:self.startDate,
                 stopAcceptingBetsDate:self.stopAcceptingBetsDate,
                 winnerOptionsIndex:self.winnerOptionsIndex,
-                odds:odds
+                odds:odds,
+                uuid: self.uuid.toString()
             )
         }
 
@@ -417,7 +380,6 @@ access(all) contract FlowBetPalace {
     // create Userswitchboard resource for new users
     pub fun createUserSwitchBoard(address: String): @UserSwitchboard{
         //emit an event for help frontend determine if user already has a switchboard
-        emit setupSwitchBoard(userAddress:address)
         return <- create UserSwitchboard()
     }
 
