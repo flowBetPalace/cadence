@@ -271,6 +271,8 @@ access(all) contract FlowBetPalace {
             let feesAmount = amountWithFees * FlowBetPalace.feesPercentage /100.0
             //get vault amount
             let amount = amountWithFees - feesAmount
+            //update self amount
+            self.totalAmount = self.totalAmount + amount
             //get actual resource uuid
             let uuid = self.uuid.toString()
             //take 1% fees
@@ -281,10 +283,22 @@ access(all) contract FlowBetPalace {
             FlowBetPalace.flowVault.deposit(from:<-vault)
             //update option value amount
             self.optionsValueAmount[optionIndex] = self.optionsValueAmount[optionIndex]! + UFix64(amount)
-            //update option odds 1 + the decimal valu
-            self.optionOdds[optionIndex] = self.totalAmount / self.optionsValueAmount[optionIndex]! 
+            // generateOdds
+            // based on the amount of each options and the total amount, generate odds for it
+            self.generateOdds()
             //return new bet
             return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath,childBetName: self.name,choosenOptionName: self.options[optionIndex])
+        }
+
+        // generateOdds
+        // based on the amount of each options and the total amount, generate odds for it
+        pub fun generateOdds(){
+            for index,element in self.options {
+                let indexInt64 = UInt64(index)
+                //update option odds 1 + the decimal valu
+                self.optionOdds[indexInt64] = self.totalAmount / self.optionsValueAmount[indexInt64]! 
+
+            }
         }
 
         pub fun chechPrize(bet: @UserBet): @FungibleToken.Vault{
@@ -306,6 +320,8 @@ access(all) contract FlowBetPalace {
                 return <- FlowBetPalace.flowVault.withdraw(amount:0.0)
             }
         }
+
+        
 
         //set winner options
         pub fun setWinnerOptions(winnerOptions: [UInt64]){
