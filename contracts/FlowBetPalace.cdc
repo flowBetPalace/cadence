@@ -69,7 +69,9 @@ access(all) contract FlowBetPalace {
         //later access to the childbet resource
         pub let childBetPath: String
         pub let prizeRequested: Bool
-        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,prizeRequested:Bool){
+        pub let childBetName: String
+        pub let choosenOptionName: String
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,prizeRequested:Bool,childBetName: String,choosenOptionName: String){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
@@ -77,6 +79,8 @@ access(all) contract FlowBetPalace {
             self.childBetPath = childBetPath.toString()
             self.childUuid = childBetUuid
             self.prizeRequested = prizeRequested
+            self.childBetName = childBetName
+            self.choosenOptionName = choosenOptionName
         }
 
 
@@ -276,7 +280,7 @@ access(all) contract FlowBetPalace {
             //update option odds 1 + the decimal valu
             self.optionOdds[optionIndex] = self.totalAmount / self.optionsValueAmount[optionIndex]! 
             //return new bet
-            return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
+            return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath,childBetName: self.name,choosenOptionName: self.options[optionIndex])
         }
 
         pub fun chechPrize(bet: @UserBet): @FlowToken.Vault{
@@ -357,14 +361,18 @@ access(all) contract FlowBetPalace {
         pub let choosenOption: UInt64
         //later access to the childbet resource
         pub let childBetPath: PublicPath
+        pub let childBetName: String
+        pub let choosenOptionName: String
 
-        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath){
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,childBetName: String,choosenOptionName: String){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
             self.choosenOption = choosenOption
             self.childBetPath = childBetPath
             self.childUuid = childBetUuid
+            self.childBetName = childBetName
+            self.choosenOptionName = choosenOptionName
         }
         
     }
@@ -409,7 +417,9 @@ access(all) contract FlowBetPalace {
                 childBetUuid: bet.childBetUuid, 
                 choosenOption: bet.choosenOption,
                 childBetPath: bet.childBetPath,
-                prizeRequested: false
+                prizeRequested: false,
+                childBetName: bet.childBetName,
+                choosenOptionName: bet.choosenOptionName
             )
 
             //save back the user bet
