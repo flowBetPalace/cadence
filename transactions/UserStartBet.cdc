@@ -17,7 +17,7 @@ transaction(amount: UFix64,uuid: String,optionIndex:UInt64) {
             acct.save(<- userSwitchBoardResource,to:FlowBetPalace.userSwitchBoardStoragePath)
         
             //create a private link to the storage path
-            acct.link<&FlowBetPalace.UserSwitchboard>(FlowBetPalace.userSwitchBoardPrivatePath,target:FlowBetPalace.userSwitchBoardStoragePath)
+            acct.link<&AnyResource{FlowBetPalace.UserSwitchboardPublicInterface}>(FlowBetPalace.userSwitchBoardPublicPath,target:FlowBetPalace.userSwitchBoardStoragePath)
             log("account switchboard created")
             // destroy the resource as its null
             destroy profilecopy
