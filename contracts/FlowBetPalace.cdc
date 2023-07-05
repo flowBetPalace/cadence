@@ -134,9 +134,12 @@ access(all) contract FlowBetPalace {
 
 
     pub resource interface UserSwitchboardPublicInterface {
-        pub fun getBets(): [UserBetStruct]
+        pub fun getFinishedBets(): [UserBetStruct]
+        pub fun getMyBetsKeys():[String]
+        pub fun getBetData(key:String): UserBetStruct
     }
 
+    
     // Bet
     // A Bet represents a Bet created for events such as matches or fights.
     // It stores various data related to the event, excluding information about
@@ -382,7 +385,7 @@ access(all) contract FlowBetPalace {
     /// UserSwitchboardInterface
     // this resource stores all the bets of the user ,
     // the resource is stored on user storage
-    pub resource UserSwitchboard  {
+    pub resource UserSwitchboard: UserSwitchboardPublicInterface  {
         // stores the active bets that user has started {betuuid:userbetresource}
         access(contract) var activeBets: @{String: UserBet}
         
@@ -395,7 +398,22 @@ access(all) contract FlowBetPalace {
         // withdrawBet
         // function that withdraw a bet from the UserSwitchBoard for get the rewards at the child bet resources
         pub fun withdrawBet(uuid: String): @UserBet{
-            return <- self.activeBets.remove(key: uuid)!
+
+        //make a struct based on userbet data
+            let bet <- self.activeBets.remove(key: uuid)!
+            let betDataStruct = UserBetStruct(
+                amount: bet.amount,
+                uuid: bet.uuid.toString(), 
+                betUuid: bet.betUuid,
+                childBetUuid: bet.childBetUuid, 
+                choosenOption: bet.choosenOption,
+                childBetPath: bet.childBetPath,
+                prizeRequested: false,
+                childBetName: bet.childBetName,
+                choosenOptionName: bet.choosenOptionName
+            )
+            self.finishedBets.insert(at:0,betDataStruct)
+            return <- bet
         }
 
         // getMyBetsKeys
@@ -429,11 +447,17 @@ access(all) contract FlowBetPalace {
             return betDataStruct
         }
 
+        pub fun getFinishedBets(): [UserBetStruct]{
+            return self.finishedBets
+        }
+
+        access(contract) var finishedBets: [UserBetStruct]
         destroy (){
             destroy self.activeBets
         }
 
         init(){
+        self.finishedBets = []
             self.activeBets <- {}
         }
     }
