@@ -7,8 +7,7 @@
 // The flow for create each bet event and its custom wagers("child bets") is create a bet resource(a football match) , 
 // add "child" bets resources on each bet resource(who win the match , amount of goals a team scores, wich player scores,...)
 // finally the users bet on each "child" bet and get a resource as receipt of the bet
-import FlowToken from 0x7e60df042a9c0868
-import FungibleToken from 0x9a0766d93b6608b7
+import FlowToken from 0x05
 
 access(all) contract FlowBetPalace {
 
@@ -69,15 +68,18 @@ access(all) contract FlowBetPalace {
         pub let choosenOption: UInt64
         //later access to the childbet resource
         pub let childBetPath: String
-
-        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath){
+        pub let prizeRequested: Bool
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,prizeRequested:Bool){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
             self.choosenOption = choosenOption
             self.childBetPath = childBetPath.toString()
             self.childUuid = childBetUuid
+            self.prizeRequested = prizeRequested
         }
+
+
     }
     //BetPublicInterface
     //public interface of Bet resources
@@ -105,8 +107,8 @@ access(all) contract FlowBetPalace {
     //ChildBetPublicInterface
     //public interface of ChildBet resources
     pub resource interface ChildBetPublicInterface {
-        pub fun newBet(optionIndex: UInt64,vault : @FungibleToken.Vault): @UserBet
-        pub fun chechPrize(bet: @UserBet): @FungibleToken.Vault
+        pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet
+        pub fun chechPrize(bet: @UserBet): @FlowToken.Vault
         pub fun getData():FlowBetPalace.ChildBetStruct
     }
 
@@ -124,6 +126,11 @@ access(all) contract FlowBetPalace {
         // we only want an event is emitted for the bets created by the organization
         pub fun createBet(name: String,description: String, imageLink: String,category: String,startDate: UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64): @Bet
 
+    }
+
+
+    pub resource interface UserSwitchboardPublicInterface {
+        pub fun getBets(): [UserBetStruct]
     }
 
     // Bet
@@ -245,7 +252,7 @@ access(all) contract FlowBetPalace {
             return odds
         }
 
-        pub fun newBet(optionIndex: UInt64,vault : @FungibleToken.Vault): @UserBet{
+        pub fun newBet(optionIndex: UInt64,vault : @FlowToken.Vault): @UserBet{
             //return if winners announced
             if(self.winnerOptionsIndex.length>0 || getCurrentBlock().timestamp>self.stopAcceptingBetsDate){
                 panic("bet finished")
@@ -272,7 +279,7 @@ access(all) contract FlowBetPalace {
             return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath)
         }
 
-        pub fun chechPrize(bet: @UserBet): @FungibleToken.Vault{
+        pub fun chechPrize(bet: @UserBet): @FlowToken.Vault{
             // check if the bet is winner
             let value: Bool = self.winnerOptionsIndex.contains(bet.choosenOption)
 
@@ -370,7 +377,7 @@ access(all) contract FlowBetPalace {
     pub resource UserSwitchboard  {
         // stores the active bets that user has started {betuuid:userbetresource}
         access(contract) var activeBets: @{String: UserBet}
-
+        
         // addBet
         // function that adds a new bet to the user activebets
         pub fun addBet(newBet: @UserBet){
@@ -401,7 +408,8 @@ access(all) contract FlowBetPalace {
                 betUuid: bet.betUuid,
                 childBetUuid: bet.childBetUuid, 
                 choosenOption: bet.choosenOption,
-                childBetPath: bet.childBetPath
+                childBetPath: bet.childBetPath,
+                prizeRequested: false
             )
 
             //save back the user bet
@@ -491,7 +499,7 @@ access(all) contract FlowBetPalace {
 
     // userSwitchBoardPrivatePath
     // private path for the user bets switchboard, should be only accessible by the user
-    pub let userSwitchBoardPrivatePath: PrivatePath
+    pub let userSwitchBoardPublicPath: PublicPath
 
     // publicPath for script resource
     pub let scriptPublicPath: PublicPath
@@ -499,7 +507,7 @@ access(all) contract FlowBetPalace {
     pub let scriptStoragePath: StoragePath
     
     // Flow token vault
-    access(contract) let flowVault: @FungibleToken.Vault
+    access(contract) let flowVault: @FlowToken.Vault
 
     //Data to be accesses from scripts
     access(contract) var betsArray: [[String]]
@@ -517,13 +525,13 @@ access(all) contract FlowBetPalace {
         }
     }
     // Flow token that recaude fees
-    access(contract) let feesVault: @FungibleToken.Vault
+    access(contract) let feesVault: @FlowToken.Vault
     pub let feesPercentage: UFix64
     init(){
         self.storagePath = /storage/flowBetPalace
         self.publicPath = /public/flowBetPalace
         self.adminStoragePath = /storage/flowBetPalaceAdmin
-        self.userSwitchBoardPrivatePath = /private/flowBetPalaceSwitchboard
+        self.userSwitchBoardPublicPath = /public/flowBetPalaceSwitchboard
         self.userSwitchBoardStoragePath = /storage/flowBetPalaceSwitchboard
         self.adminPublicPath = /public/flowBetPalaceAdmin
         self.scriptPublicPath = /public/flowBetPalaceScript
