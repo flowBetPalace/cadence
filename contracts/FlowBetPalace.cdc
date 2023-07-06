@@ -135,7 +135,7 @@ access(all) contract FlowBetPalace {
 
 
     pub resource interface UserSwitchboardPublicInterface {
-        pub fun getFinishedBets(): [UserBetStruct]
+        pub fun getFinishedBets(amount:Int,skip: Int): [UserBetStruct]
         pub fun getMyBetsKeys():[String]
         pub fun getBetData(key:String): UserBetStruct
     }
