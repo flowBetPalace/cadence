@@ -464,8 +464,17 @@ access(all) contract FlowBetPalace {
             return betDataStruct
         }
 
-        pub fun getFinishedBets(): [UserBetStruct]{
-            return self.finishedBets
+        pub fun getFinishedBets(amount:Int,skip: Int): [UserBetStruct]{
+            if(self.finishedBets!.length>skip+amount){
+                return self.finishedBets!.slice(from: skip,upTo:amount)
+            }else{
+                if(self.finishedBets!.length<5){
+                    return self.finishedBets!.slice(from: 0,upTo:self.finishedBets!.length)
+                }else{
+                    return self.finishedBets!.slice(from: 0,upTo:5)
+
+                }
+            }
         }
 
         access(contract) var finishedBets: [UserBetStruct]
