@@ -72,7 +72,9 @@ access(all) contract FlowBetPalace {
         pub let prizeRequested: Bool
         pub let childBetName: String
         pub let choosenOptionName: String
-        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,prizeRequested:Bool,childBetName: String,choosenOptionName: String){
+        pub let betName: String
+        pub let endDate: UFix64
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,prizeRequested:Bool,childBetName: String,choosenOptionName: String,betName: String,endDate: UFix64){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
@@ -82,6 +84,8 @@ access(all) contract FlowBetPalace {
             self.prizeRequested = prizeRequested
             self.childBetName = childBetName
             self.choosenOptionName = choosenOptionName
+            self.betName = betName
+            self.endDate = endDate
         }
 
 
@@ -135,7 +139,7 @@ access(all) contract FlowBetPalace {
 
 
     pub resource interface UserSwitchboardPublicInterface {
-        pub fun getFinishedBets(amount:Int,skip: Int): [UserBetStruct]
+        pub fun getFinishedBets(): [UserBetStruct]
         pub fun getMyBetsKeys():[String]
         pub fun getBetData(key:String): UserBetStruct
     }
@@ -165,7 +169,7 @@ access(all) contract FlowBetPalace {
         //create a new child bet resource
         pub fun createChildBet(name:String,options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64):@ChildBet{
             //create the new resource
-            let newResource <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString())
+            let newResource <- create ChildBet(name:name,options: options,startDate : startDate,endDate: endDate,stopAcceptingBetsDate: stopAcceptingBetsDate,betUuid:self.uuid.toString(),betName:self.name)
             //add the betChild uuid to the array that tracks them
             self.childBetsUuid.append(newResource.uuid.toString())
             //emit event of createdBetChild
@@ -260,6 +264,9 @@ access(all) contract FlowBetPalace {
             return odds
         }
 
+        //data
+        pub let betName: String
+
         pub fun newBet(optionIndex: UInt64,vault : @FungibleToken.Vault): @UserBet{
             //return if winners announced
             if(self.winnerOptionsIndex.length>0 || getCurrentBlock().timestamp>self.stopAcceptingBetsDate){
@@ -287,7 +294,7 @@ access(all) contract FlowBetPalace {
             // based on the amount of each options and the total amount, generate odds for it
             self.generateOdds()
             //return new bet
-            return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath,childBetName: self.name,choosenOptionName: self.options[optionIndex])
+            return <- create UserBet(amount: amount,uuid: uuid, betUuid: self.betUuid,childBetUuid:uuid,choosenOption: optionIndex,childBetPath: self.publicPath,childBetName: self.name,choosenOptionName: self.options[optionIndex],betName:self.betName,endDate:self.endDate)
         }
 
         // generateOdds
@@ -343,7 +350,7 @@ access(all) contract FlowBetPalace {
             )
         }
 
-        init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,betUuid: String){
+        init(name: String, options: [String],startDate : UFix64,endDate: UFix64,stopAcceptingBetsDate: UFix64,betUuid: String,betName: String){
             self.name = name
             self.options = options
             self.winnerOptionsIndex = []
@@ -356,7 +363,7 @@ access(all) contract FlowBetPalace {
             self.stopAcceptingBetsDate = stopAcceptingBetsDate
             self.storagePath = StoragePath(identifier:"betchild".concat(self.uuid.toString()))!
             self.publicPath = PublicPath(identifier: "betchild".concat(self.uuid.toString()))!  
-            
+            self.betName = betName
             let optionsAmount = options.length
 
             if(optionsAmount<2){
@@ -383,8 +390,10 @@ access(all) contract FlowBetPalace {
         pub let childBetPath: PublicPath
         pub let childBetName: String
         pub let choosenOptionName: String
+        pub let betName: String
+        pub let endDate: UFix64
 
-        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,childBetName: String,choosenOptionName: String){
+        init(amount: UFix64,uuid: String, betUuid: String,childBetUuid: String, choosenOption: UInt64,childBetPath: PublicPath,childBetName: String,choosenOptionName: String,betName: String, endDate: UFix64){
             self.amount = amount
             self.childBetUuid = uuid
             self.betUuid = betUuid
@@ -393,6 +402,8 @@ access(all) contract FlowBetPalace {
             self.childUuid = childBetUuid
             self.childBetName = childBetName
             self.choosenOptionName = choosenOptionName
+            self.betName = betName
+            self.endDate = endDate
         }
         
     }
@@ -427,7 +438,9 @@ access(all) contract FlowBetPalace {
                 childBetPath: bet.childBetPath,
                 prizeRequested: false,
                 childBetName: bet.childBetName,
-                choosenOptionName: bet.choosenOptionName
+                choosenOptionName: bet.choosenOptionName,
+                betName: bet.betName,
+                endDate: bet.endDate
             )
             self.finishedBets.insert(at:0,betDataStruct)
             return <- bet
@@ -454,7 +467,9 @@ access(all) contract FlowBetPalace {
                 childBetPath: bet.childBetPath,
                 prizeRequested: false,
                 childBetName: bet.childBetName,
-                choosenOptionName: bet.choosenOptionName
+                choosenOptionName: bet.choosenOptionName,
+                betName: bet.betName,
+                endDate: bet.endDate
             )
 
             //save back the user bet
@@ -464,17 +479,8 @@ access(all) contract FlowBetPalace {
             return betDataStruct
         }
 
-        pub fun getFinishedBets(amount:Int,skip: Int): [UserBetStruct]{
-            if(self.finishedBets!.length>skip+amount){
-                return self.finishedBets!.slice(from: skip,upTo:amount)
-            }else{
-                if(self.finishedBets!.length<5){
-                    return self.finishedBets!.slice(from: 0,upTo:self.finishedBets!.length)
-                }else{
-                    return self.finishedBets!.slice(from: 0,upTo:5)
-
-                }
-            }
+        pub fun getFinishedBets(): [UserBetStruct]{
+            return self.finishedBets
         }
 
         access(contract) var finishedBets: [UserBetStruct]
