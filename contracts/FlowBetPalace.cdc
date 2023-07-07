@@ -270,7 +270,7 @@ access(all) contract FlowBetPalace {
         pub fun newBet(optionIndex: UInt64,vault : @FungibleToken.Vault): @UserBet{
             //return if winners announced
             if(self.winnerOptionsIndex.length>0 || getCurrentBlock().timestamp>self.stopAcceptingBetsDate){
-                panic("bet finished")
+                panic("bet finished".concat(getCurrentBlock().timestamp.toString()))
             }
             // vault balance
             let amountWithFees = vault.balance
@@ -309,6 +309,10 @@ access(all) contract FlowBetPalace {
         }
 
         pub fun chechPrize(bet: @UserBet): @FungibleToken.Vault{
+            //return if winners were not selected
+            if(self.winnerOptionsIndex.length==0){
+                panic("prizes needs to b announced".concat(getCurrentBlock().timestamp.toString()))
+            }
             // check if the bet is winner
             let value: Bool = self.winnerOptionsIndex.contains(bet.choosenOption)
 
