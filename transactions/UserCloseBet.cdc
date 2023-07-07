@@ -1,6 +1,6 @@
 import FlowBetPalace from 0x01
 import FlowToken from 0x05
-transaction(amount: UFix64,uuid: String,userBetUuid: String) {
+transaction(uuid: String,userBetUuid: String) {
     prepare(acct: AuthAccount) {
     
         
