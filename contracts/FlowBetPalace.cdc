@@ -527,25 +527,30 @@ access(all) contract FlowBetPalace {
     pub resource Script {
         pub fun getBets(amount: Int):[[String]]{
             if(FlowBetPalace.betsArray.length>amount){
-                return FlowBetPalace.betsArray.slice(from:0,upTo:amount)
+                return FlowBetPalace.betsArray
             }else{
-                return FlowBetPalace.betsArray.slice(from:0,upTo:FlowBetPalace.betsArray.length)
+                return FlowBetPalace.betsArray
             }
         }
 
-        pub fun getCategoryBets(category: String, amount: Int,skip: Int):[[String]]{
-            if(FlowBetPalace.betsCategoryArray[category]!.length>skip+amount){
-                return FlowBetPalace.betsCategoryArray[category]!.slice(from: skip,upTo:amount)
-            }else{
-                if(FlowBetPalace.betsCategoryArray[category]!.length<5){
-                    return FlowBetPalace.betsCategoryArray[category]!.slice(from: 0,upTo:FlowBetPalace.betsCategoryArray[category]!.length)
-                }else{
-                    return FlowBetPalace.betsCategoryArray[category]!.slice(from: 0,upTo:5)
-
-                }
-            }
+        pub fun getCategoryBets(categoryy: String):[[String]]{
+            return FlowBetPalace.betsCategoryArray[categoryy]!
+           
         }
     }
+
+    pub fun getBets(amount: Int):[[String]]{
+            if(FlowBetPalace.betsArray.length>amount){
+                return FlowBetPalace.betsArray
+            }else{
+                return FlowBetPalace.betsArray
+            }
+        }
+
+        pub fun getCategoryBets(categoryy: String):[[String]]{
+            return FlowBetPalace.betsCategoryArray[categoryy]!
+           
+        }
     
     // storagePath for FlowBetPalace account resource
     // storage path where the Profile resource should be located
