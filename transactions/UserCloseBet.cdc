@@ -1,4 +1,4 @@
-import FlowBetPalace from 0x01
+import FlowBetPalace from 0xd19f554fdb83f838
 import FlowToken from 0x05
 transaction(uuid: String,userBetUuid: String) {
     prepare(acct: AuthAccount) {
@@ -12,7 +12,7 @@ transaction(uuid: String,userBetUuid: String) {
         let profile <- acct.load<@FlowBetPalace.UserSwitchboard>(from: FlowBetPalace.userSwitchBoardStoragePath) ?? panic("user have not started his account")
 
         // get admin account that stores resourced
-        let accountFlowBetPalace = getAccount(0x01)
+        let accountFlowBetPalace = getAccount(0xd19f554fdb83f838)
 
         // get reference of the childBet resource
         let childBetRef = accountFlowBetPalace.getCapability<&AnyResource{FlowBetPalace.ChildBetPublicInterface}>(PublicPath(identifier:"betchild".concat(uuid))!)

@@ -1,4 +1,4 @@
-import FlowBetPalace from 0x01
+import FlowBetPalace from 0xd19f554fdb83f838
 
 transaction() {
 

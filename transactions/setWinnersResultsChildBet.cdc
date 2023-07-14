@@ -1,4 +1,4 @@
-import FlowBetPalace from 0x01
+import FlowBetPalace from 0xd19f554fdb83f838
 import FlowToken from 0x05
 transaction(uuid: String,optionIndex:[UInt64]) {
     prepare(acct: AuthAccount) {

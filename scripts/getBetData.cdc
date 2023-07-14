@@ -1,9 +1,9 @@
-import FlowBetPalace from 0x01
+import FlowBetPalace from 0xd19f554fdb83f838
 
 
 pub fun main(uuid:String) :FlowBetPalace.BetDataStruct{
     // Get the accounts' public account objects
-    let acct1 = getAccount(0x01)
+    let acct1 = getAccount(0xd19f554fdb83f838)
     //get bet path
     let betPath = PublicPath(identifier: "bet".concat(uuid))!
     // Get references to the account's receivers
